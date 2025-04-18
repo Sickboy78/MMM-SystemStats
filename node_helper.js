@@ -50,7 +50,7 @@ module.exports = NodeHelper.create({
 	var cmdUpTime =		sshCommand + config.upTimeCmd;
 	var cmdFreeSpace =	sshCommand + config.freeSpaceCmd;
 	
-    async.parallel([
+    async.parallelLimit([
       // get cpu temp
       async.apply(exec, cmdCpuTemp),
       // get system load
@@ -62,8 +62,7 @@ module.exports = NodeHelper.create({
       // get free-space
       async.apply(exec, cmdFreeSpace),
 
-    ],
-    function (err, res) {
+    ],1).then(res => {
       var stats = {};
       stats.id =		config.id;
       stats.cpuTemp =	self.formatData(res[0][0],config.cpuTempSplit,config.cpuTempReplace);
@@ -73,7 +72,9 @@ module.exports = NodeHelper.create({
       stats.freeSpace =	self.formatData(res[4][0],config.freeSpaceSplit,config.freeSpaceReplace);
       // console.log(stats);
       self.sendSocketNotification('RESPONSE_SYSTEM_STATS', stats);
-    });
+    }).catch(err => {
+		console.log(err);
+	});
   },
 
 
